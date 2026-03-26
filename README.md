@@ -38,6 +38,37 @@ SystemCanvas is a professional, React-based web application designed to help dev
 4. Open your browser and navigate to `http://localhost:5173`.
 5. *Demo Note*: Use the interactive Sign-Up form on the login screen, or log in securely.
 
+## Deploying to Vercel
+
+This app is a static Vite build (`npm run build` outputs to `dist`). A `vercel.json` in the repo sets the output directory and SPA fallback so client-side routes always serve `index.html`.
+
+### Option A — Import from GitHub (recommended)
+
+1. Push this repository to GitHub (if it is not already).
+2. Go to [vercel.com](https://vercel.com), sign in, and click **Add New Project**.
+3. Import the **SystemCanvas** repository. Vercel usually detects Vite automatically; if not, set **Framework Preset** to **Vite** or **Other** with:
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+   - **Install Command:** `npm install` (or leave default)
+4. Deploy. Every push to your production branch will trigger a new deployment.
+
+### Option B — Vercel CLI
+
+From the project root (requires a [Vercel account](https://vercel.com/signup) and the CLI logged in):
+
+```bash
+npm i -g vercel
+vercel
+```
+
+Follow the prompts to link the folder to a Vercel project. For a production URL:
+
+```bash
+vercel --prod
+```
+
+The first time you run `vercel`, your browser will open for authentication.
+
 ## Future Roadmap
 - **Multi-user Real-time Collaboration**: WebSocket integration for live presence, cursors, and conflict resolution alongside your team.
 - **Intelligent Templates**: Pre-built starting points for standard architectures like Event-Driven Serverless or 3-Tier Web Apps.
