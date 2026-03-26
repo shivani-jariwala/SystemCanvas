@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+ * Global resets & base styles for SystemCanvas.
+ * Tailwind v4 handles utility generation via the Vite plugin;
+ * this file provides the single @import entry-point plus any
+ * app-wide overrides that don't belong in component files.
+ */
+
+/* Full-viewport app with no overflow — the canvas owns scrolling */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Custom scrollbar (sidebar panels)                                  */
+/* ------------------------------------------------------------------ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(55 65 81) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(55 65 81);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(75 85 99);
+}
+
+/* ------------------------------------------------------------------ */
+/*  React Flow overrides — animated edge "marching ants"               */
+/* ------------------------------------------------------------------ */
+
+/* Speed up the default dashed-line animation for a snappier feel */
+.react-flow__edge-path {
+  stroke-linecap: round;
+}
+
+.react-flow__edge.animated path {
+  animation-duration: 0.6s;
+}
+
+/* Glow effect on edges when hovered */
+.react-flow__edge:hover path {
+  filter: drop-shadow(0 0 3px rgb(99 102 241 / 0.5));
+}
+
+/* Connection line while dragging a new edge */
+.react-flow__connection-path {
+  stroke-dasharray: 6;
+  animation: dash-flow 0.4s linear infinite;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* Subtle glow on handles when a connection is possible */
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  background: #6366f1 !important;
+  box-shadow: 0 0 6px rgb(99 102 241 / 0.6);
+}
+
+/* Dark-themed minimap (if ever enabled) */
+.react-flow__minimap {
+  background: rgb(17 24 39);
+}
+
+/* Dark-themed selection box */
+.react-flow__selection {
+  background: rgb(99 102 241 / 0.08);
+  border: 1px solid rgb(99 102 241 / 0.3);
+}
+
+/* Select box around nodes */
+.react-flow__nodesselection-rect {
+  background: rgb(99 102 241 / 0.08);
+  border: 1px solid rgb(99 102 241 / 0.3);
+}
