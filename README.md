@@ -1,16 +1,68 @@
-# React + Vite
+# SystemCanvas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SystemCanvas is a powerful, web-based system architecture diagramming tool built with **React**, **Vite**, **@xyflow/react** (React Flow), **Zustand**, and **Tailwind CSS v4**.
 
-Currently, two official plugins are available:
+It provides an intuitive, drag-and-drop interface for designing cloud infrastructure, microservices architectures, and flowcharts directly in your browser.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![SystemCanvas Screenshot](systemcanvas-preview.png)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🚀 Core Functionality
+- **Drag-and-Drop Workspace**: Endless canvas powered by React Flow.
+- **Categorized Node Library**: 30+ components across categories like Components, Annotations, Shapes, and major cloud providers.
+- **Animated Connections**: Smoothstep edges with animated directional flow.
+- **Node Inspector**: Edit labels, statuses (Healthy, Degraded, Down), and simulated latencies.
 
-## Expanding the ESLint configuration
+### 💼 Premium Tools
+- **Export to Image**: Instantly download your architecture as a PNG or SVG.
+- **Save & Load**: Automatically persists your diagrams to `localStorage` so you never lose your work.
+- **Undo / Redo History**: Confidently make changes with full action history.
+- **MiniMap & Fit-to-View**: Easily navigate complex, large-scale system diagrams.
+- **Floating Toolbar**: Quick access to all core actions right on the canvas.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### ☁️ Cloud Libraries
+- **AWS**: EC2, S3, Lambda, RDS, SQS, SNS
+- **Google Cloud**: Compute Engine, Cloud Storage, Cloud Functions, BigQuery, Pub/Sub
+- **Azure**: Virtual Machine, Blob Storage, Functions, SQL Database, Service Bus
+- **Kubernetes**: Pod, Service, Deployment, Ingress, ConfigMap
+
+### 📝 Annotations & Shapes
+- **Sticky Notes**: Color-coded, resizable notes with fold effects.
+- **Shapes**: Rectangles, circles, and diamonds for standard flowcharting.
+- **Text & Tables**: Rich text blocks and editable key-value tables.
+
+---
+
+## Tech Stack
+- **Frontend Framework**: React 19 + Vite
+- **Diagramming Engine**: @xyflow/react
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS v4
+- **Icons**: Lucide React
+- **Animations**: Framer Motion
+- **Export**: html-to-image
+
+---
+
+## Running Locally
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser to `http://localhost:5173`.
+
+---
+
+## Future Roadmap
+- Multi-user real-time collaboration with conflict resolution.
+- Intelligent template suggestions (e.g., standard 3-tier web app, event-driven microservices).
+- AI Integration for text-to-diagram generation and component suggestions.
+- Image upload support to use existing diagrams as reference backgrounds.

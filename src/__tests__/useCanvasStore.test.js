@@ -8,7 +8,13 @@ import useCanvasStore from '../store/useCanvasStore';
 
 /** Reset the store to a clean slate before every test. */
 beforeEach(() => {
-  useCanvasStore.setState({ nodes: [], edges: [], selectedNodeId: null });
+  useCanvasStore.setState({ 
+    nodes: [], 
+    edges: [], 
+    selectedNodeId: null,
+    pastStates: [],
+    futureStates: [] 
+  });
 });
 
 describe('useCanvasStore', () => {

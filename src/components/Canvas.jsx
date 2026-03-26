@@ -3,14 +3,14 @@
  *
  * Hosts the React Flow instance wired to the Zustand store.
  * Handles native HTML5 drop events from the Sidebar palette.
- * Configures default edge styling (smoothstep, indigo, animated)
- * and a polished connection line while the user drags a new edge.
+ * Includes the floating Toolbar and MiniMap.
  */
 import { useCallback, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   BackgroundVariant,
   ConnectionLineType,
   useReactFlow,
@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import useCanvasStore from '../store/useCanvasStore';
 import nodeTypes from './nodes';
+import Toolbar from './Toolbar';
 
 /** MIME type used as the drag-and-drop data channel. */
 const DND_MIME = 'application/systemcanvas-node';
@@ -75,6 +76,9 @@ function Canvas() {
       aria-label="Architecture canvas"
       className="relative flex-1 h-full"
     >
+      {/* Floating toolbar */}
+      <Toolbar />
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -101,6 +105,20 @@ function Canvas() {
         <Controls
           showInteractive={false}
           className="!bg-gray-800 !border-gray-700 !shadow-lg [&>button]:!bg-gray-800 [&>button]:!border-gray-700 [&>button]:!fill-gray-300 [&>button:hover]:!bg-gray-700"
+        />
+        <MiniMap
+          nodeStrokeWidth={3}
+          nodeColor={(node) => {
+            if (node.type === 'stickyNote') return '#fbbf24';
+            if (node.type?.startsWith('aws')) return '#fb923c';
+            if (node.type?.startsWith('gcp')) return '#60a5fa';
+            if (node.type?.startsWith('azure')) return '#22d3ee';
+            if (node.type?.startsWith('k8s')) return '#818cf8';
+            if (node.type?.startsWith('shape')) return '#94a3b8';
+            return '#6366f1';
+          }}
+          maskColor="rgb(3 7 18 / 0.7)"
+          className="!bg-gray-900 !border-gray-700"
         />
       </ReactFlow>
 

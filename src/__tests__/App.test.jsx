@@ -6,8 +6,13 @@
  */
 import { render, screen } from '@testing-library/react';
 import App from '../App';
+import useAuthStore from '../store/useAuthStore';
 
 describe('App layout', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ isAuthenticated: true, user: { name: 'Admin', role: 'Architect' } });
+  });
+
   it('renders all three panels without crashing', () => {
     render(<App />);
 
