@@ -5,7 +5,7 @@
  * Handles native HTML5 drop events from the Sidebar palette.
  * Includes the floating Toolbar and MiniMap.
  */
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -21,6 +21,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import useCanvasStore from '../store/useCanvasStore';
 import nodeTypes from './nodes';
 import Toolbar from './Toolbar';
+import TabBar from './TabBar';
+import ContextMenu from './ContextMenu';
+import AlignmentToolbar from './AlignmentToolbar';
 
 /** MIME type used as the drag-and-drop data channel. */
 const DND_MIME = 'application/systemcanvas-node';
@@ -28,25 +31,67 @@ const DND_MIME = 'application/systemcanvas-node';
 function Canvas() {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
+  const edgeType = useCanvasStore((s) => s.edgeType);
   const onNodesChange = useCanvasStore((s) => s.onNodesChange);
   const onEdgesChange = useCanvasStore((s) => s.onEdgesChange);
   const onConnect = useCanvasStore((s) => s.onConnect);
   const addNode = useCanvasStore((s) => s.addNode);
   const setSelectedNodeId = useCanvasStore((s) => s.setSelectedNodeId);
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
+  const [menu, setMenu] = useState(null);
+
+  /** Global Keyboard Shortcuts for Pro Features */
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore shortcuts if writing in an input/textarea
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (cmdOrCtrl && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        useCanvasStore.getState().duplicateSelected();
+      }
+      
+      if (cmdOrCtrl && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        useCanvasStore.getState().selectAll();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   /** Fallback styles applied to every new edge unless overridden. */
   const defaultEdgeOptions = useMemo(() => ({
-    type: 'smoothstep',
+    type: edgeType,
     animated: true,
     style: { stroke: '#6366f1', strokeWidth: 2 },
-  }), []);
+  }), [edgeType]);
 
   const handleDragOver = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
+
+  const handleNodeDragStop = useCallback((event, node) => {
+    // Avoid dropping a group into another group currently to keep it simple
+    if (node.type === 'groupBlock') return;
+
+    const intersections = getIntersectingNodes(node).filter((n) => n.type === 'groupBlock');
+    const groupNode = intersections.length > 0 ? intersections[0] : null;
+
+    if (groupNode && node.parentNode !== groupNode.id) {
+      // Assign to group
+      useCanvasStore.getState().reparentNode(node.id, groupNode.id);
+    } else if (!groupNode && node.parentNode) {
+      // Remove from group
+      useCanvasStore.getState().reparentNode(node.id, null);
+    }
+  }, [getIntersectingNodes]);
 
   const handleDrop = useCallback(
     (event) => {
@@ -65,8 +110,23 @@ function Canvas() {
   );
 
   const handlePaneClick = useCallback(
-    () => setSelectedNodeId(null),
+    () => {
+      setSelectedNodeId(null);
+      setMenu(null);
+    },
     [setSelectedNodeId],
+  );
+
+  const onNodeContextMenu = useCallback(
+    (event, node) => {
+      event.preventDefault(); // Prevent native right-click menu
+      setMenu({
+        id: node.id,
+        top: event.clientY,
+        left: event.clientX,
+      });
+    },
+    [setMenu],
   );
 
   const isEmpty = nodes.length === 0;
@@ -76,8 +136,9 @@ function Canvas() {
       aria-label="Architecture canvas"
       className="relative flex-1 h-full"
     >
-      {/* Floating toolbar */}
+      {/* Floating toolbars */}
       <Toolbar />
+      <AlignmentToolbar />
 
       <ReactFlow
         nodes={nodes}
@@ -85,12 +146,15 @@ function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeDragStop={handleNodeDragStop}
         onPaneClick={handlePaneClick}
+        onNodeContextMenu={onNodeContextMenu}
+        onPaneContextMenu={(e) => { e.preventDefault(); setMenu(null); }}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
-        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionLineType={edgeType === 'step' ? ConnectionLineType.Step : ConnectionLineType.SmoothStep}
         connectionLineStyle={{ stroke: '#6366f1', strokeWidth: 2 }}
         fitView
         proOptions={{ hideAttribution: true }}
@@ -145,6 +209,12 @@ function Canvas() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Workspace Tabs */}
+      <TabBar />
+
+      {/* Context Menu */}
+      {menu && <ContextMenu onClick={() => setMenu(null)} {...menu} />}
     </main>
   );
 }

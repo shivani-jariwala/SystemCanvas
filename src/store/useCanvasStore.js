@@ -22,7 +22,13 @@ const MAX_HISTORY = 50;
 
 const useCanvasStore = create((set, get) => ({
   /* ------------------------------------------------------------------ */
-  /*  State                                                              */
+  /*  Pages (Tabs) State                                                 */
+  /* ------------------------------------------------------------------ */
+  pages: [{ id: 'page-1', name: 'Page 1', nodes: [], edges: [], pastStates: [], futureStates: [] }],
+  activePageId: 'page-1',
+
+  /* ------------------------------------------------------------------ */
+  /*  Active Page State                                                  */
   /* ------------------------------------------------------------------ */
 
   /** @type {import('@xyflow/react').Node[]} */
@@ -30,6 +36,8 @@ const useCanvasStore = create((set, get) => ({
 
   /** @type {import('@xyflow/react').Edge[]} */
   edges: [],
+
+  edgeType: 'smoothstep',
 
   /** ID of the node currently selected for inspection (null = none). */
   selectedNodeId: null,
@@ -39,8 +47,95 @@ const useCanvasStore = create((set, get) => ({
   futureStates: [],
 
   /* ------------------------------------------------------------------ */
-  /*  History helpers                                                     */
+  /*  History & Page Helpers                                              */
   /* ------------------------------------------------------------------ */
+
+  _syncActivePage: () => {
+    const { activePageId, nodes, edges, pastStates, futureStates, pages } = get();
+    const updatedPages = pages.map(p => 
+      p.id === activePageId 
+        ? { ...p, nodes, edges, pastStates, futureStates, edgeType: get().edgeType } 
+        : p
+    );
+    set({ pages: updatedPages });
+    return updatedPages;
+  },
+
+  switchPage: (targetId) => {
+    const { activePageId, pages } = get();
+    if (targetId === activePageId) return;
+    
+    // Sync current active page to array
+    get()._syncActivePage();
+    
+    // Load new page into active root
+    const targetPage = get().pages.find(p => p.id === targetId);
+    if (targetPage) {
+      set({
+        activePageId: targetId,
+        nodes: targetPage.nodes || [],
+        edges: targetPage.edges || [],
+        edgeType: targetPage.edgeType || 'smoothstep',
+        pastStates: targetPage.pastStates || [],
+        futureStates: targetPage.futureStates || [],
+        selectedNodeId: null
+      });
+    }
+  },
+
+  createPage: (name) => {
+    get()._syncActivePage();
+    const newPage = {
+      id: `page-${Date.now()}`,
+      name: name || `Page ${get().pages.length + 1}`,
+      nodes: [],
+      edges: [],
+      pastStates: [],
+      futureStates: []
+    };
+    
+    set((state) => ({
+      pages: [...state.pages, newPage],
+      activePageId: newPage.id,
+      nodes: [],
+      edges: [],
+      edgeType: 'smoothstep',
+      pastStates: [],
+      futureStates: [],
+      selectedNodeId: null
+    }));
+  },
+
+  renamePage: (id, name) => {
+    set((state) => ({
+      pages: state.pages.map(p => p.id === id ? { ...p, name } : p)
+    }));
+  },
+
+  deletePage: (id) => {
+    const { pages, activePageId } = get();
+    if (pages.length <= 1) return; // Cannot delete last page
+    
+    get()._syncActivePage();
+    const newPages = get().pages.filter(p => p.id !== id);
+    
+    if (activePageId === id) {
+      // Swapping to the first available page
+      const targetPage = newPages[0];
+      set({
+        pages: newPages,
+        activePageId: targetPage.id,
+        nodes: targetPage.nodes || [],
+        edges: targetPage.edges || [],
+        edgeType: targetPage.edgeType || 'smoothstep',
+        pastStates: targetPage.pastStates || [],
+        futureStates: targetPage.futureStates || [],
+        selectedNodeId: null
+      });
+    } else {
+      set({ pages: newPages });
+    }
+  },
 
   /** Push current state to undo stack before a mutation */
   _pushHistory: () => {
@@ -90,6 +185,14 @@ const useCanvasStore = create((set, get) => ({
   setEdges: (edges) => {
     get()._pushHistory();
     set({ edges });
+  },
+
+  setEdgeType: (type) => {
+    get()._pushHistory();
+    set((state) => ({
+      edgeType: type,
+      edges: state.edges.map(e => ({ ...e, type }))
+    }));
   },
 
   /* ------------------------------------------------------------------ */
@@ -148,7 +251,7 @@ const useCanvasStore = create((set, get) => ({
         {
           ...connection,
           animated: true,
-          type: 'smoothstep',
+          type: state.edgeType || 'smoothstep',
           style: { stroke: '#6366f1', strokeWidth: 2 },
           markerEnd: {
             type: MarkerType.ArrowClosed,
@@ -208,6 +311,120 @@ const useCanvasStore = create((set, get) => ({
   },
 
   /**
+   * Node Context Menu Actions
+   */
+  duplicateNode: (id) => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const nodeToCopy = nodes.find((n) => n.id === id);
+    if (!nodeToCopy) return;
+
+    const newId = `node-${nextNodeId++}`;
+    const newNode = {
+      ...nodeToCopy,
+      id: newId,
+      position: { x: nodeToCopy.position.x + 50, y: nodeToCopy.position.y + 50 },
+      selected: true,
+    };
+
+    set({
+      nodes: [...nodes.map((n) => ({ ...n, selected: false })), newNode],
+      selectedNodeId: newId,
+    });
+  },
+
+  deleteNode: (id) => {
+    get()._pushHistory();
+    set((state) => ({
+      nodes: state.nodes.filter((n) => n.id !== id),
+      edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+      selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
+    }));
+  },
+
+  bringToFront: (id) => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const maxZ = Math.max(0, ...nodes.map((n) => n.zIndex || 0));
+    set({
+      nodes: nodes.map((n) => (n.id === id ? { ...n, zIndex: maxZ + 1 } : n)),
+    });
+  },
+
+  sendToBack: (id) => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const minZ = Math.min(0, ...nodes.map((n) => n.zIndex || 0));
+    set({
+      nodes: nodes.map((n) => (n.id === id ? { ...n, zIndex: minZ - 1 } : n)),
+    });
+  },
+
+  /**
+   * Multi-Node Actions (Shortcuts & Alignment)
+   */
+  duplicateSelected: () => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const selectedNodes = nodes.filter(n => n.selected);
+    if (selectedNodes.length === 0) return;
+
+    const newNodes = selectedNodes.map(node => ({
+      ...node,
+      id: `node-${nextNodeId++}`,
+      position: { x: node.position.x + 50, y: node.position.y + 50 },
+      selected: true
+    }));
+
+    set({
+      nodes: [
+        ...nodes.map(n => ({ ...n, selected: false })),
+        ...newNodes
+      ]
+    });
+  },
+
+  selectAll: () => {
+    set((state) => ({
+      nodes: state.nodes.map(n => ({ ...n, selected: true })),
+      edges: state.edges.map(e => ({ ...e, selected: true }))
+    }));
+  },
+
+  alignSelected: (alignment) => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const selected = nodes.filter(n => n.selected);
+    if (selected.length < 2) return;
+
+    // Approximated bounds since measured data might be missing immediately on load
+    const minX = Math.min(...selected.map(n => n.position.x));
+    const maxX = Math.max(...selected.map(n => n.position.x + (n.measured?.width || 150)));
+    const minY = Math.min(...selected.map(n => n.position.y));
+    const maxY = Math.max(...selected.map(n => n.position.y + (n.measured?.height || 50)));
+
+    set({
+      nodes: nodes.map(n => {
+        if (!n.selected) return n;
+        const w = n.measured?.width || 150;
+        const h = n.measured?.height || 50;
+        let x = n.position.x;
+        let y = n.position.y;
+
+        switch (alignment) {
+          case 'left': x = minX; break;
+          case 'center': x = minX + (maxX - minX) / 2 - w / 2; break;
+          case 'right': x = maxX - w; break;
+          case 'top': y = minY; break;
+          case 'middle': y = minY + (maxY - minY) / 2 - h / 2; break;
+          case 'bottom': y = maxY - h; break;
+        }
+        return { ...n, position: { x, y } };
+      })
+    });
+  },
+
+  /**
    * Merges new data into an existing node's `data` object.
    * Used by the Inspector panel to update label, latency, etc.
    */
@@ -219,6 +436,48 @@ const useCanvasStore = create((set, get) => ({
           : node,
       ),
     }));
+  },
+
+  /**
+   * Parenting / Grouping Logic
+   */
+  reparentNode: (nodeId, newParentId) => {
+    get()._pushHistory();
+    const { nodes } = get();
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    if (newParentId) {
+      const parent = nodes.find((n) => n.id === newParentId);
+      if (parent) {
+        // Convert to relative position
+        const relativeX = node.position.x - parent.position.x;
+        const relativeY = node.position.y - parent.position.y;
+        
+        set({
+          nodes: nodes.map((n) => (n.id === nodeId ? { 
+            ...n, 
+            parentNode: newParentId, 
+            position: { x: relativeX, y: relativeY } 
+          } : n)),
+        });
+      }
+    } else {
+      // Removing from parent => Convert back to absolute position
+      const parent = nodes.find((n) => n.id === node.parentNode);
+      if (parent) {
+        const absX = node.position.x + parent.position.x;
+        const absY = node.position.y + parent.position.y;
+        
+        set({
+          nodes: nodes.map((n) => (n.id === nodeId ? { 
+            ...n, 
+            parentNode: undefined, 
+            position: { x: absX, y: absY } 
+          } : n)),
+        });
+      }
+    }
   },
 
   /**

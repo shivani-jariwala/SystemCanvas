@@ -21,6 +21,8 @@ import {
   Maximize,
   Check,
   AlertCircle,
+  Spline,
+  CornerDownRight,
 } from 'lucide-react';
 import useCanvasStore from '../store/useCanvasStore';
 
@@ -81,6 +83,8 @@ function Toolbar() {
   const edges = useCanvasStore((s) => s.edges);
   const setNodes = useCanvasStore((s) => s.setNodes);
   const setEdges = useCanvasStore((s) => s.setEdges);
+  const edgeType = useCanvasStore((s) => s.edgeType);
+  const setEdgeType = useCanvasStore((s) => s.setEdgeType);
   const undo = useCanvasStore((s) => s.undo);
   const redo = useCanvasStore((s) => s.redo);
   const canUndo = useCanvasStore((s) => s.pastStates.length > 0);
@@ -135,10 +139,12 @@ function Toolbar() {
   }, [getFlowElement, showToast]);
 
   const handleSave = useCallback(() => {
-    const data = { nodes, edges, viewport: getViewport() };
+    useCanvasStore.getState()._syncActivePage();
+    const { pages, activePageId } = useCanvasStore.getState();
+    const data = { pages, activePageId, viewport: getViewport() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     showToast('Diagram saved');
-  }, [nodes, edges, getViewport, showToast]);
+  }, [getViewport, showToast]);
 
   const handleLoad = useCallback(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -147,14 +153,36 @@ function Toolbar() {
       return;
     }
     try {
-      const { nodes: savedNodes, edges: savedEdges } = JSON.parse(raw);
-      setNodes(savedNodes || []);
-      setEdges(savedEdges || []);
+      const data = JSON.parse(raw);
+      if (data.pages) {
+        // New multi-page format
+        const targetPage = data.pages.find(p => p.id === data.activePageId);
+        useCanvasStore.setState({
+          pages: data.pages,
+          activePageId: data.activePageId,
+          nodes: targetPage?.nodes || [],
+          edges: targetPage?.edges || [],
+          pastStates: targetPage?.pastStates || [],
+          futureStates: targetPage?.futureStates || [],
+          selectedNodeId: null
+        });
+      } else {
+        // Backwards compatibility with old flat format
+        useCanvasStore.setState({
+          pages: [{ id: 'page-1', name: 'Page 1', nodes: data.nodes || [], edges: data.edges || [], pastStates: [], futureStates: [] }],
+          activePageId: 'page-1',
+          nodes: data.nodes || [],
+          edges: data.edges || [],
+          pastStates: [],
+          futureStates: [],
+          selectedNodeId: null
+        });
+      }
       showToast('Diagram loaded');
     } catch {
       showToast('Failed to load diagram', 'error');
     }
-  }, [setNodes, setEdges, showToast]);
+  }, [showToast]);
 
   const handleFitView = useCallback(() => {
     fitView({ padding: 0.2, duration: 300 });
@@ -196,6 +224,16 @@ function Toolbar() {
         </ToolBtn>
         <ToolBtn onClick={redo} title="Redo" disabled={!canRedo}>
           <Redo2 className="h-4 w-4" />
+        </ToolBtn>
+
+        <Divider />
+
+        {/* Edge Routing Toggle */}
+        <ToolBtn 
+          onClick={() => setEdgeType(edgeType === 'smoothstep' ? 'step' : 'smoothstep')} 
+          title={`Routing: ${edgeType === 'step' ? 'Orthogonal' : 'Smooth'}`}
+        >
+          {edgeType === 'step' ? <CornerDownRight className="h-4 w-4" /> : <Spline className="h-4 w-4" />}
         </ToolBtn>
 
         <Divider />

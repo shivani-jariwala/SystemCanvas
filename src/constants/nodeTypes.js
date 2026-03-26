@@ -6,7 +6,11 @@
  * and custom node resolution.
  */
 import {
+  User,
+  Router,
   Globe,
+  Bot,
+  Sparkles,
   Network,
   Boxes,
   MessageSquare,
@@ -22,7 +26,6 @@ import {
   Server,
   HardDrive,
   Zap,
-  CircleAlert,
   Mail,
   // GCP
   Cloud,
@@ -32,7 +35,6 @@ import {
   // Azure
   Monitor,
   Container,
-  FunctionSquare,
   DatabaseZap,
   Bus,
   // Kubernetes
@@ -48,22 +50,44 @@ import {
  */
 const NODE_CATEGORIES = [
   {
-    title: 'Components',
+    title: 'Network & Edge',
     items: [
-      { type: 'apiGateway',    label: 'API Gateway',    icon: Globe },
+      { type: 'userNode',      label: 'User / Browser', icon: User },
+      { type: 'dnsNode',       label: 'DNS',            icon: Router },
+      { type: 'cdnNode',       label: 'CDN',            icon: Globe },
+      { type: 'apiGateway',    label: 'API Gateway',    icon: Network },
       { type: 'loadBalancer',  label: 'Load Balancer',  icon: Network },
-      { type: 'microservice',  label: 'Microservice',   icon: Boxes },
-      { type: 'messageQueue',  label: 'Message Queue',  icon: MessageSquare },
-      { type: 'database',      label: 'Database',       icon: Database },
-      { type: 'cache',         label: 'Cache',          icon: MemoryStick },
     ],
   },
   {
-    title: 'Annotations',
+    title: 'Compute & Logic',
     items: [
+      { type: 'microservice',  label: 'Microservice',   icon: Boxes },
+    ],
+  },
+  {
+    title: 'Data & State',
+    items: [
+      { type: 'database',      label: 'Database',       icon: Database },
+      { type: 'cache',         label: 'Cache',          icon: MemoryStick },
+      { type: 'messageQueue',  label: 'Message Queue',  icon: MessageSquare },
+    ],
+  },
+  {
+    title: 'AI & Machine Learning',
+    items: [
+      { type: 'aiModelNode',   label: 'AI Model',       icon: Bot },
+      { type: 'llmNode',       label: 'LLM Engine',     icon: Sparkles },
+      { type: 'vectorDbNode',  label: 'Vector DB',      icon: Database },
+    ],
+  },
+  {
+    title: 'Layout & Annotations',
+    items: [
+      { type: 'groupBlock',  label: 'Group / VPC',  icon: Square },
       { type: 'stickyNote',  label: 'Sticky Note',  icon: StickyNote },
       { type: 'textBlock',   label: 'Text Block',   icon: Type },
-      { type: 'tableBlock',  label: 'Table',         icon: Table },
+      { type: 'tableBlock',  label: 'Table',        icon: Table },
     ],
   },
   {

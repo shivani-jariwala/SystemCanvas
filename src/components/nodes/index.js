@@ -16,7 +16,9 @@ import CacheNode from './CacheNode';
 import StickyNoteNode from './StickyNoteNode';
 import ShapeNode from './ShapeNode';
 import TextTableNode from './TextTableNode';
+import GroupNode from './GroupNode';
 import { createCloudNode } from './CloudProviderNode';
+import { createSystemNode } from './GenericSystemNode';
 
 const nodeTypes = {
   // Core system components
@@ -27,6 +29,14 @@ const nodeTypes = {
   database: DatabaseNode,
   cache: CacheNode,
 
+  // New Generics
+  userNode: createSystemNode('user'),
+  dnsNode: createSystemNode('dns'),
+  cdnNode: createSystemNode('cdn'),
+  aiModelNode: createSystemNode('aiModel'),
+  vectorDbNode: createSystemNode('vectorDb'),
+  llmNode: createSystemNode('llm'),
+
   // Annotations
   stickyNote: StickyNoteNode,
   textBlock: TextTableNode,
@@ -36,6 +46,9 @@ const nodeTypes = {
   shapeRect: ShapeNode,
   shapeCircle: ShapeNode,
   shapeDiamond: ShapeNode,
+
+  // Structural
+  groupBlock: GroupNode,
 
   // AWS
   awsEC2: createCloudNode('awsEC2'),
