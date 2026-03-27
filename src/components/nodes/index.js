@@ -46,6 +46,7 @@ const nodeTypes = {
   shapeRect: ShapeNode,
   shapeCircle: ShapeNode,
   shapeDiamond: ShapeNode,
+  shapeArrow: ShapeNode,
 
   // Structural
   groupBlock: GroupNode,

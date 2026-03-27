@@ -20,6 +20,7 @@ import {
   Square,
   Circle,
   Diamond,
+  ArrowRight,
   Type,
   Table,
   // AWS
@@ -93,9 +94,10 @@ const NODE_CATEGORIES = [
   {
     title: 'Shapes',
     items: [
-      { type: 'shapeRect',    label: 'Rectangle',  icon: Square,  shape: 'rectangle' },
-      { type: 'shapeCircle',  label: 'Circle',     icon: Circle,  shape: 'circle' },
-      { type: 'shapeDiamond', label: 'Diamond',    icon: Diamond, shape: 'diamond' },
+      { type: 'shapeRect',    label: 'Rectangle',  icon: Square,     shape: 'rectangle' },
+      { type: 'shapeCircle',  label: 'Circle',     icon: Circle,     shape: 'circle' },
+      { type: 'shapeDiamond', label: 'Diamond',    icon: Diamond,    shape: 'diamond' },
+      { type: 'shapeArrow',   label: 'Arrow',      icon: ArrowRight, shape: 'arrow' },
     ],
   },
   {
