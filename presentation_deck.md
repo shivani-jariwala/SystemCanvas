@@ -1,205 +1,140 @@
 ````carousel
 # SystemCanvas
-**Cloud Architecture Visualizer**
+**System DEsign tool**
 
 ### Final Project Presentation
 *Design digital system architectures at the speed of thought.*
 
 **The Team:**
-1. **[Member 1 Name]** - UI/UX & Layout Engineer
-2. **[Member 2 Name]** - Canvas & Custom Nodes Lead
-3. **[Member 3 Name]** - State Management & Data Engineer
-4. **[Member 4 Name]** - Authentication & Routing Lead
+1. **[Member 1 Name]** 
+2. **[Member 2 Name]** 
+3. **[Member 3 Name]** 
+4. **[Member 4 Name]** 
 
 <!-- slide -->
-# MEMBER 1: UI/UX & Layout Engineer
-### The Vision & Design System
+# Agenda
+### Presentation Contents
 
-**Objective:**
-Shift away from clunky, outdated enterprise diagramming tools by building a premium, developer-focused interface inspired by Figma.
-
-**Key Contributions:**
-*   Architected the global dark-mode design system using **Tailwind CSS**.
-*   Integrated **Lucide-React** for crisp, scalable SVG iconography.
-*   Built the responsive Flexbox grid that houses the Sidebar, Canvas Workspace, and Inspector properties panel.
+1. **Introduction & Architecture** (Problem Statement, SPA Tech Stack, Zustand Data Flow)
+2. **The Intelligent UI Engine** (Generic Node Factory, Context Menus, Keyboard Shortcuts)
+3. **Advanced Mechanics** (Multi-Tab Workspaces, VPC Grouping, Auto-Alignment, Undo/Redo)
+4. **Market Differentiation & Future Scope** (Developer-First Focus, Customizable Stickers, AI Roadmap)
 
 <!-- slide -->
-# MEMBER 1: UI/UX & Layout Engineer
-### The intelligent Component Palette
+# MEMBER 1 
+### Introduction & Problem Statement
 
-**Objective:**
-Make finding and dragging 30+ cloud components instantaneous.
+**The Problem:**
+Traditional diagramming tools like Visio or Draw.io are clunky, slow, and aesthetically outdated. Developers spend hours wrestling with layout alignment rather than designing the actual system architecture.
 
-**Key Contributions:**
-*   Built the **Collapsible Sidebar**, strictly categorizing components by logic tiers: Network, Compute, Data, AI, and Cloud Providers.
-*   Implemented a real-time **live search algorithm** that filters components dynamically as the user types.
-*   Wired the HTML5 Drag-and-Drop (`dataTransfer`) protocol to allow nodes to be seamlessly dragged from the DOM into the WebGL/Canvas context.
+**The Solution:**
+SystemCanvas is a premium workspace built exclusively for software architects. We provide a speed-oriented, visually stunning canvas that generates presentation-ready graphics instantly.
 
 <!-- slide -->
-# MEMBER 1: UI/UX & Layout Engineer
-### Floating Toolbars & User Interactions
+# MEMBER 1 
+### System Architecture & Tech Stack
 
-**Objective:**
-Provide power-user features without cluttering the screen.
+Our application operates entirely in the browser, leveraging a React-driven Single Page Application (SPA) architecture to ensure zero latency.
 
-**Key Contributions:**
-*   Designed the absolute-positioned **Main Toolbar** for zooming, reverting history, and toggling edge-routing modes (Orthogonal vs Bezier curves).
-*   Built the dynamic **Alignment Toolbar** which only appears conditionally when multiple nodes are selected.
-*   Implemented Toast notifications for system feedback (e.g., successful local saves, export failures).
+*   **View Layer:** React 18 handles the complex UI component tree.
+*   **Canvas Engine:** `@xyflow/react` powers the underlying WebGL node graph and mathematical viewport rendering.
+*   **Styling & UI:** Tailwind CSS for the dark-mode grid and Framer-Motion for fluid page transitions.
+*   **Routing:** React Router DOM manages protected URL boundaries.
 
 <!-- slide -->
-# MEMBER 1: UI/UX & Layout Engineer
-### Working Demo: The UI Layout
+# MEMBER 1 
+### State & Data Flow Architecture
 
-*Here is the final layout showing the complex, nested sidebar logic beside the WebGL canvas grid.*
+SystemCanvas rejects native React Context in favor of **Zustand**, a lightweight global state manager. 
+
+*   **The Store (`useCanvasStore`):** A centralized nervous system housing the `nodes`, `edges`, and `history` arrays.
+*   **Data Bound Components:** Nodes and UI toolbars subscribe individually to specific Zustand selectors, preventing the 60fps canvas from causing aggressive, application-wide React re-renders.
+*   **Persistence:** The store automatically serializes complex JS node objects into JSON strings stored in `localStorage`.
+
+<!-- slide -->
+# MEMBER 2 
+### Feature 1: Intelligent Component Library
+
+SystemCanvas comes pre-loaded with an extensive library of architectural primitives categorized by logical function.
+
+*   **Functional Segregation:** Components are strictly separated into *Network & Edge*, *Compute*, *Data*, and *AI*.
+*   **The Node Factory:** We built a dynamic `GenericSystemNode` factory that mathematically renders custom shapes, injecting specific `Lucide-React` icons (like AI Bots or CDNs) without code bloat.
+*   **Live Indicators:** Nodes feature dynamic "Healthy/Active" pulsing indicator dots simulating live environments.
+
+<!-- slide -->
+# MEMBER 2 
+### Demo: Workspace & Component Palette
+
+*Here is the complex, nested sidebar logic beside the WebGL canvas grid.*
 
 ![Canvas UI and Architecture](/Users/piyushdeshmukh/.gemini/antigravity/brain/11aa1a6a-a6e6-4d8a-b0fd-67bc30e8b057/.system_generated/click_feedback/click_feedback_1774564762797.png)
 
 <!-- slide -->
-# MEMBER 2: Canvas & Custom Nodes Lead
-### React Flow Engine Integration
+# MEMBER 2 
+### Feature 2: Context Menus & Shortcuts
 
-**Objective:**
-Power the core diagramming canvas with a mathematically sound, interactive node graph.
+We engineered SystemCanvas to be driven by power-users without reaching for the mouse menus.
 
-**Key Contributions:**
-*   Configured `@xyflow/react` to act as the primary engine for the center canvas.
-*   Set up the `MiniMap`, `Controls`, and `Background` grid configurations.
-*   Engineered the mathematical coordinate mapping (`screenToFlowPosition`) to accurately translate dropped sidebar items into precise canvas coordinates based on the user's current zoom and pan.
-
-<!-- slide -->
-# MEMBER 2: Canvas & Custom Nodes Lead
-### The Generic System Node Factory
-
-**Objective:**
-Support dozens of varying node types without writing duplicated boilerplate React code.
-
-**Key Contributions:**
-*   Programmed the `GenericSystemNode` factory component.
-*   This single function dynamically outputs User, DNS, CDN, AI Model, and Vector DB components by injecting specific configurations and icons on the fly.
-*   Added dynamic "Healthy/Active" pulsing indicator dots inside the custom nodes based on live property injection.
+*   **Context Menus:** We intercepted default browser behavior to render a custom React Node Action menu directly onto `(x,y)` canvas coordinates.
+*   **Z-Index Logic:** Users can push nodes behind or pull them in front of others.
+*   **Keyboard Engine:** A global listener mapped to `⌘D` (Duplicate Selected), `⌘A` (Select All), and native `Backspace` node deletion speeds up workflows.
+*   **Context Menu Demo:**
+    ![Context Menu Demo](/Users/piyushdeshmukh/.gemini/antigravity/brain/11aa1a6a-a6e6-4d8a-b0fd-67bc30e8b057/.system_generated/click_feedback/click_feedback_1774563340287.png)
 
 <!-- slide -->
-# MEMBER 2: Canvas & Custom Nodes Lead
-### Context Menus & Keyboard Engine
+# MEMBER 3 
+### Feature 3: Multi-Tab & Time Travel
 
-**Objective:**
-Provide rapid, professional-grade tools for mutating diagrams.
+Enterprise architectures are too complex to fit on a single screen. We built an isolated multi-page engine within the same project.
 
-**Key Contributions:**
-*   Overrode default browser behaviors to render a custom **Context Menu** component directly onto the canvas absolute `(x,y)` coordinates.
-*   Engineered Z-Index manipulation logic (`Bring to Front` / `Send to Back`).
-*   Developed a global `useEffect` Keyboard Engine listener for `⌘D` (Duplicate Selected), `⌘A` (Select All), and native node deletion.
+*   **Hot-Swapping Logic:** The Tab Bar triggers Zustand to safely cache current `edges` and `nodes` into a master array, wiping the canvas blank, and injecting a new tab's history data instantly.
+*   **Time Travel Engine:** A custom History Stack manages deep-cloned snapshots of `pastStates` and `futureStates`. Every mutation triggers a snapshot, allowing infinite Ctrl+Z reversals.
 
 <!-- slide -->
-# MEMBER 2: Canvas & Custom Nodes Lead
-### Working Demo: Semantic Grouping & Menus
+# MEMBER 3 
+### Feature 4: Semantic VPC Groupings 
 
-*A demonstration of the VPC Group bounding boxes capturing child Microservices, alongside the custom Context Menu.*
+Architectures require structural boundaries (like AWS VPCs or Subnets). 
+
+*   **Bounding Boxes:** Users can drag a `Group / VPC` block onto the canvas. 
+*   **Intersection Algorithms:** We execute collision detection (`getIntersectingNodes`) when a drag event stops. If a standard node is dropped *inside* a Group, it is mathematically parented.
+*   **Auto-Alignment Tools:** Selecting multiple nodes exposes a floating Alignment Toolbar for pixel-perfect structural distribution (Left, Center, Top).
+
+<!-- slide -->
+# MEMBER 3 
+### Demo: Workspace Organization
+
+*A demonstration of the VPC Group bounding boxes capturing child Microservices alongside alignment tools.*
 
 ![Context Menu Demo](/Users/piyushdeshmukh/.gemini/antigravity/brain/11aa1a6a-a6e6-4d8a-b0fd-67bc30e8b057/.system_generated/click_feedback/click_feedback_1774563340287.png)
 
 <!-- slide -->
-# MEMBER 3: State Management & Data Eng
-### Architecting Zustand
+# MEMBER 4 
+### The Developer-Oriented Ecosystem
 
-**Objective:**
-Manage large arrays of complex graph state without triggering aggressive React re-renders.
+Unlike traditional generic drawing tools, SystemCanvas is engineered natively and specifically for software engineers.
 
-**Key Contributions:**
-*   Replaced native React Context with **Zustand** for lightweight, boilerplate-free state logic.
-*   Built the `useCanvasStore.js` controlling the master `nodes`, `edges`, and `selectedNodeId` states.
-*   Wrote the complex logic arrays for the auto-alignment tools (Left, Center, Right distribution) computing bounding boxes computationally.
+*   **Logic-Based Primitives:** We don't just provide generic unformatted boxes. Every component in our palette—from LLM Engines to Load Balancers—carries distinct architectural weight.
+*   **Keyboard Speed:** Developers fly through creation with aggressively mapped `⌘` keyboard shortcuts (`⌘D`, `⌘A`) rather than hunting through buried dropdown menus.
+*   **Customizable Annotations:** You can customize and stamp your own architecture stickers, sticky notes, and text blocks instantly to leave granular developer notes without inflating the diagram.
 
 <!-- slide -->
-# MEMBER 3: State Management & Data Eng
-### Multi-Page Workspace Implementation
+# MEMBER 4 
+### Market Differentiation
+*How is SystemCanvas different from Figma or Draw.io?*
 
-**Objective:**
-Allow users to create sprawling, isolated architectures within a single project file.
-
-**Key Contributions:**
-*   Engineered the **TabBar** concept.
-*   Developed a hot-swapping algorithm in `useCanvasStore` that saves the active nodes & edges into a `pages` array, then extracts the target page's history into the core workspace instantly.
-*   Supported inline tab renaming and tab deletion safely.
+1.  **Vs. Figma:** Figma is a brilliant, sprawling layout tool built for *artists* and *designers*. Creating rapid cloud architecture diagrams requires building components manually from scratch. SystemCanvas strips away decorative bloat to offer pure, professional engineering building blocks instantly.
+2.  **Vs. Draw.io / Lucidchart:** These tools are universally generic and aesthetically dated. SystemCanvas, however, forces strict Orthogonal layouts, auto-alignment Math capabilities, and nested VPC intersection boundaries out of the box. It is highly developer-oriented—nothing else.
 
 <!-- slide -->
-# MEMBER 3: State Management & Data Eng
-### Time Travel: Undo & Redo History
-
-**Objective:**
-Prevent catastrophic data loss during diagramming.
-
-**Key Contributions:**
-*   Built a custom **History Stack** managing deep-cloned snapshots of `pastStates` and `futureStates`.
-*   Hooked the history stack up to every mutation action (adding nodes, moving edges, changing data).
-*   Ensured history stacks are strictly capped at 50 snapshots to prevent browser memory leaks.
-
-<!-- slide -->
-# MEMBER 3: State Management & Data Eng
-### Persistence & Image Exporting
-
-**Objective:**
-Keep diagrams alive across browser refreshing and allow users to export their work.
-
-**Key Contributions:**
-*   Wrote the `localStorage` serializer saving the unified Multi-Tab document JSON payload.
-*   Wrote the backward compatibility deserializer to ensure older app versions don't crash when loading the new tab arrays.
-*   Integrated `html-to-image` parsing the WebGL DOM to spit out high-res PNG and SVG files securely.
-
-<!-- slide -->
-# MEMBER 4: Authentication & Routing Lead
-### Security First Philosophy
-
-**Objective:**
-Ensure user data is distinct, secure, and gate-kept behind modern authentication flows.
-
-**Key Contributions:**
-*   Designed the overarching protected client-side layout.
-*   If a user is not authenticated, the `App.jsx` router cleanly blocks the workspace and mounts the full-screen interactive Login layer.
-*   Designed a mock backend logic simulating database JWT tokens directly via `localStorage`.
-
-<!-- slide -->
-# MEMBER 4: Authentication & Routing Lead
-### The Animated Login Interface
-
-**Objective:**
-Create an arresting, premium first impression for the software.
-
-**Key Contributions:**
-*   Styled the `LoginPage.jsx` layout using flex-panels and blurred CSS gradient orbs.
-*   Integrated **Framer Motion** for silky smooth cross-fade animations when swapping between views or revealing error banners.
-*   Injected a dynamic loading state with a simulated `setTimeout` latency to simulate API calls.
-
-<!-- slide -->
-# MEMBER 4: Authentication & Routing Lead
-### User Registry & Validation Logic
-
-**Objective:**
-Execute actual credential hashing and logical verification.
-
-**Key Contributions:**
-*   Engineered the local Sign-Up form logic.
-*   Wrote the validation loops parsing for missing fields, minimum password length rules, and exact matching "Confirm Password" statements.
-*   Wrote the duplication check that iterates through the simulated `systemcanvas-users` database to block duplicate username registrations.
-
-<!-- slide -->
-# MEMBER 4: Authentication & Routing Lead
-### Working Demo: Secure Sign Up
-
-*The animated authentication flow securing the primary workspace.*
-
-![Login Form Image](/Users/piyushdeshmukh/.gemini/antigravity/brain/11aa1a6a-a6e6-4d8a-b0fd-67bc30e8b057/.system_generated/click_feedback/click_feedback_1774563283864.png)
-
-<!-- slide -->
-# Future Roadmap
+# MEMBER 4 
+### Future Work & Roadmap
 
 In the next iteration of SystemCanvas, we aim to implement:
 
 *   **Multi-user Real-time Collaboration:** Integrate WebSockets (Socket.io) for live cursor tracking and operational conflict resolution.
 *   **Intelligent Templates:** Inject predefined starting points for standard industry architectures (Serverless loops, etc.).
-*   **AI Integration:** Text-to-diagram generation, allowing architects to prompt complete environments instantly.
-*   **Custom Cloud APIs:** Linking directly into AWS/GCP to map out actual live billings based on the diagrams.
+*   **AI Text-to-Graph Generation:** Allow architects to feed an LLM a prompt (e.g., "Design a 3000 RPS Node server on AWS"), which will automatically map nodes onto the canvas in seconds.
 
 <!-- slide -->
 # Thank You!
