@@ -5,6 +5,7 @@
  * editable property fields with Framer Motion transitions.
  * Every keystroke calls updateNodeData — React Flow re-renders
  * the custom node on the canvas instantly.
+ * Now supports read-only mode for Viewer role.
  */
 import { SlidersHorizontal, Tag, Activity, Signal } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -41,7 +42,7 @@ const panelVariants = {
   exit: { opacity: 0, x: -12 },
 };
 
-function Inspector() {
+function Inspector({ isReadOnly = false }) {
   const selectedNodeId = useCanvasStore((s) => s.selectedNodeId);
   const nodes = useCanvasStore((s) => s.nodes);
   const updateNodeData = useCanvasStore((s) => s.updateNodeData);
@@ -105,8 +106,9 @@ function Inspector() {
                   onChange={(e) =>
                     updateNodeData(selectedNode.id, { label: e.target.value })
                   }
-                  className={`${inputClasses} pl-9`}
+                  className={`${inputClasses} pl-9 ${isReadOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
                   placeholder="Node name"
+                  readOnly={isReadOnly}
                 />
               </div>
             </Field>
@@ -126,8 +128,9 @@ function Inspector() {
                       latency: Math.max(0, Number(e.target.value) || 0),
                     })
                   }
-                  className={`${inputClasses} pl-9`}
+                  className={`${inputClasses} pl-9 ${isReadOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
                   placeholder="0"
+                  readOnly={isReadOnly}
                 />
               </div>
             </Field>
@@ -142,7 +145,8 @@ function Inspector() {
                   onChange={(e) =>
                     updateNodeData(selectedNode.id, { status: e.target.value })
                   }
-                  className={`${inputClasses} pl-9 appearance-none cursor-pointer`}
+                  className={`${inputClasses} pl-9 appearance-none cursor-pointer ${isReadOnly ? 'opacity-60 pointer-events-none' : ''}`}
+                  disabled={isReadOnly}
                 >
                   <option value="healthy">Healthy</option>
                   <option value="degraded">Degraded</option>

@@ -4,6 +4,7 @@
  * Hosts the React Flow instance wired to the Zustand store.
  * Handles native HTML5 drop events from the Sidebar palette.
  * Includes the floating Toolbar and MiniMap.
+ * Now supports permission-awareness and keyboard shortcuts modal.
  */
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import {
@@ -19,16 +20,18 @@ import '@xyflow/react/dist/style.css';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import useCanvasStore from '../store/useCanvasStore';
+import useToolUsageStore from '../store/useToolUsageStore';
 import nodeTypes from './nodes';
 import Toolbar from './Toolbar';
 import TabBar from './TabBar';
 import ContextMenu from './ContextMenu';
 import AlignmentToolbar from './AlignmentToolbar';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 
 /** MIME type used as the drag-and-drop data channel. */
 const DND_MIME = 'application/systemcanvas-node';
 
-function Canvas() {
+function Canvas({ projectId, isReadOnly = false, onCanvasChange }) {
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
   const edgeType = useCanvasStore((s) => s.edgeType);
@@ -37,11 +40,13 @@ function Canvas() {
   const onConnect = useCanvasStore((s) => s.onConnect);
   const addNode = useCanvasStore((s) => s.addNode);
   const setSelectedNodeId = useCanvasStore((s) => s.setSelectedNodeId);
+  const addRecentTool = useToolUsageStore((s) => s.addRecentTool);
 
-  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes, fitView } = useReactFlow();
   const [menu, setMenu] = useState(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
-  /** Global Keyboard Shortcuts for Pro Features */
+  /** Global Keyboard Shortcuts */
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Ignore shortcuts if writing in an input/textarea
@@ -52,20 +57,39 @@ function Canvas() {
 
       if (cmdOrCtrl && e.key.toLowerCase() === 'd') {
         e.preventDefault();
-        useCanvasStore.getState().duplicateSelected();
+        if (!isReadOnly) useCanvasStore.getState().duplicateSelected();
       }
-      
+
       if (cmdOrCtrl && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         useCanvasStore.getState().selectAll();
       }
+
+      // Zoom to fit: ⌘1
+      if (cmdOrCtrl && e.key === '1') {
+        e.preventDefault();
+        fitView({ padding: 0.2, duration: 300 });
+      }
+
+      // Show shortcuts: ?
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setShowShortcuts((v) => !v);
+      }
+
+      // Escape
+      if (e.key === 'Escape') {
+        setMenu(null);
+        setShowShortcuts(false);
+        setSelectedNodeId(null);
+      }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [fitView, isReadOnly, setSelectedNodeId]);
 
-  /** Fallback styles applied to every new edge unless overridden. */
+  /** Fallback styles applied to every new edge. */
   const defaultEdgeOptions = useMemo(() => ({
     type: edgeType,
     animated: true,
@@ -73,28 +97,30 @@ function Canvas() {
   }), [edgeType]);
 
   const handleDragOver = useCallback((event) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
-  }, []);
+  }, [isReadOnly]);
 
   const handleNodeDragStop = useCallback((event, node) => {
-    // Avoid dropping a group into another group currently to keep it simple
+    if (isReadOnly) return;
     if (node.type === 'groupBlock') return;
 
     const intersections = getIntersectingNodes(node).filter((n) => n.type === 'groupBlock');
     const groupNode = intersections.length > 0 ? intersections[0] : null;
 
     if (groupNode && node.parentNode !== groupNode.id) {
-      // Assign to group
       useCanvasStore.getState().reparentNode(node.id, groupNode.id);
     } else if (!groupNode && node.parentNode) {
-      // Remove from group
       useCanvasStore.getState().reparentNode(node.id, null);
     }
-  }, [getIntersectingNodes]);
+
+    if (onCanvasChange) onCanvasChange();
+  }, [getIntersectingNodes, isReadOnly, onCanvasChange]);
 
   const handleDrop = useCallback(
     (event) => {
+      if (isReadOnly) return;
       event.preventDefault();
       const raw = event.dataTransfer.getData(DND_MIME);
       if (!raw) return;
@@ -105,8 +131,10 @@ function Canvas() {
         y: event.clientY,
       });
       addNode(type, label, position);
+      addRecentTool(type);
+      if (onCanvasChange) onCanvasChange();
     },
-    [screenToFlowPosition, addNode],
+    [screenToFlowPosition, addNode, addRecentTool, isReadOnly, onCanvasChange],
   );
 
   const handlePaneClick = useCallback(
@@ -119,15 +147,34 @@ function Canvas() {
 
   const onNodeContextMenu = useCallback(
     (event, node) => {
-      event.preventDefault(); // Prevent native right-click menu
+      event.preventDefault();
       setMenu({
         id: node.id,
         top: event.clientY,
         left: event.clientX,
       });
     },
-    [setMenu],
+    [],
   );
+
+  const handleNodesChange = useCallback((changes) => {
+    onNodesChange(changes);
+    if (onCanvasChange && changes.some((c) => c.type === 'position' || c.type === 'remove' || c.type === 'dimensions')) {
+      onCanvasChange();
+    }
+  }, [onNodesChange, onCanvasChange]);
+
+  const handleEdgesChange = useCallback((changes) => {
+    onEdgesChange(changes);
+    if (onCanvasChange && changes.some((c) => c.type === 'remove')) {
+      onCanvasChange();
+    }
+  }, [onEdgesChange, onCanvasChange]);
+
+  const handleConnect = useCallback((connection) => {
+    onConnect(connection);
+    if (onCanvasChange) onCanvasChange();
+  }, [onConnect, onCanvasChange]);
 
   const isEmpty = nodes.length === 0;
 
@@ -137,18 +184,18 @@ function Canvas() {
       className="relative flex-1 h-full"
     >
       {/* Floating toolbars */}
-      <Toolbar />
-      <AlignmentToolbar />
+      {!isReadOnly && <Toolbar projectId={projectId} onCanvasChange={onCanvasChange} />}
+      {!isReadOnly && <AlignmentToolbar />}
 
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={isReadOnly ? undefined : handleConnect}
         onNodeDragStop={handleNodeDragStop}
         onPaneClick={handlePaneClick}
-        onNodeContextMenu={onNodeContextMenu}
+        onNodeContextMenu={isReadOnly ? undefined : onNodeContextMenu}
         onPaneContextMenu={(e) => { e.preventDefault(); setMenu(null); }}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -156,6 +203,9 @@ function Canvas() {
         defaultEdgeOptions={defaultEdgeOptions}
         connectionLineType={edgeType === 'step' ? ConnectionLineType.Step : ConnectionLineType.SmoothStep}
         connectionLineStyle={{ stroke: '#6366f1', strokeWidth: 2 }}
+        nodesDraggable={!isReadOnly}
+        nodesConnectable={!isReadOnly}
+        elementsSelectable={true}
         fitView
         proOptions={{ hideAttribution: true }}
         className="bg-gray-950"
@@ -186,7 +236,7 @@ function Canvas() {
         />
       </ReactFlow>
 
-      {/* Empty-state overlay with fade animation */}
+      {/* Empty-state overlay */}
       <AnimatePresence>
         {isEmpty && (
           <motion.div
@@ -199,11 +249,12 @@ function Canvas() {
           >
             <div className="text-center select-none">
               <h2 className="text-lg font-medium text-gray-400">
-                Your canvas is empty
+                {isReadOnly ? 'This canvas is empty' : 'Your canvas is empty'}
               </h2>
               <p className="mt-1 text-sm text-gray-500 max-w-xs mx-auto">
-                Drag components from the left panel and drop them here to start
-                designing your system architecture.
+                {isReadOnly
+                  ? 'No components have been added to this canvas yet.'
+                  : 'Drag components from the left panel or click to add them to the canvas.'}
               </p>
             </div>
           </motion.div>
@@ -211,10 +262,20 @@ function Canvas() {
       </AnimatePresence>
 
       {/* Workspace Tabs */}
-      <TabBar />
+      {!isReadOnly && <TabBar />}
 
       {/* Context Menu */}
-      {menu && <ContextMenu onClick={() => setMenu(null)} {...menu} />}
+      {menu && !isReadOnly && <ContextMenu onClick={() => setMenu(null)} {...menu} />}
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+
+      {/* Read-only indicator */}
+      {isReadOnly && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-700/60 text-xs text-gray-400 font-medium">
+          👁 View-only mode — You don't have permission to edit this project
+        </div>
+      )}
     </main>
   );
 }
